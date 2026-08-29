@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verification Suite — Controller of Examinations</title>
+<meta name="description" content="Entry point for the examination verification tools used by the Controller of Examinations office.">
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body class="is-booting">
+
+<!-- ============================================================
+     BOOT GATE — shown while the session check runs.
+     Neither the login screen nor the portal is rendered until
+     script.js decides which one to show.
+     ============================================================ -->
+<div class="boot" id="boot" role="status" aria-live="polite">
+  <span class="boot__mark" aria-hidden="true"></span>
+  <p class="boot__text">Checking session</p>
+</div>
+
+
+<!-- ============================================================
+     SIGN-IN
+     ============================================================ -->
+<main class="auth" id="login" hidden>
+
+  <section class="auth__brand">
+    <div class="auth__brandInner">
+      <div class="brandmark">
+        <img src="assets/logo.png" alt="" class="brandmark__img" data-logo>
+        <span class="brandmark__fallback" data-logo-fallback hidden aria-hidden="true">MSU</span>
+        <span class="brandmark__text">
+          <strong data-org-name>Medhavi Skills University</strong>
+          <span data-org-unit>Controller of Examinations</span>
+        </span>
+      </div>
+
+      <h1 class="auth__title">Verification&nbsp;Suite</h1>
+      <p class="auth__lede">
+        A single entry point for the examination office's two gradesheet
+        verification tools. Sign in with the credentials issued to your team.
+      </p>
+
+      <dl class="auth__facts">
+        <div>
+          <dt>Tool 01</dt>
+          <dd>Gradesheet ↔ TR verification</dd>
+        </div>
+        <div>
+          <dt>Tool 02</dt>
+          <dd>White vs original, SGPA, withheld &amp; failed</dd>
+        </div>
+      </dl>
+
+      <p class="auth__note">
+        Access is limited to staff of the examination office. Do not share
+        these credentials outside the team.
+      </p>
+    </div>
+  </section>
+
+  <section class="auth__panel">
+    <div class="slip" id="slip">
+      <header class="slip__head">
+        <span class="slip__form">Form COE&nbsp;/ Access</span>
+        <span class="slip__serial" data-serial>—</span>
+      </header>
+
+      <h2 class="slip__title">Sign in</h2>
+      <p class="slip__sub">Enter your staff ID and password to open the suite.</p>
+
+      <form class="form" id="loginForm" novalidate>
+        <div class="field">
+          <label for="userId">Staff ID</label>
+          <input type="text" id="userId" name="userId"
+                 autocomplete="username" autocapitalize="none"
+                 spellcheck="false" required
+                 aria-describedby="formError">
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="field__row">
+            <input type="password" id="password" name="password"
+                   autocomplete="current-password" required
+                   aria-describedby="formError">
+            <button type="button" class="reveal-btn" id="togglePassword"
+                    aria-pressed="false" aria-label="Show password">Show</button>
+          </div>
+        </div>
+
+        <label class="check">
+          <input type="checkbox" id="keepSignedIn">
+          <span>Keep me signed in on this device</span>
+        </label>
+
+        <p class="form__error" id="formError" role="alert" hidden></p>
+
+        <button type="submit" class="btn btn--primary btn--block" id="submitBtn">
+          <span class="btn__label">Sign in</span>
+        </button>
+      </form>
+
+      <p class="slip__foot">
+        Trouble signing in? Contact the examination office administrator.
+      </p>
+
+      <!-- success stamp -->
+      <div class="stamp" id="stamp" aria-hidden="true">
+        <div class="stamp__ink">
+          <span class="stamp__line">Access</span>
+          <span class="stamp__word">Granted</span>
+          <span class="stamp__meta" data-stamp-time></span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+
+<!-- ============================================================
+     PORTAL (protected)
+     ============================================================ -->
+<div class="app" id="app" hidden>
+
+  <header class="site-header" id="siteHeader">
+    <div class="wrap site-header__inner">
+      <a class="brandmark brandmark--sm" href="#overview">
+        <img src="assets/logo.png" alt="" class="brandmark__img" data-logo>
+        <span class="brandmark__fallback" data-logo-fallback hidden aria-hidden="true">MSU</span>
+        <span class="brandmark__text">
+          <strong>Verification Suite</strong>
+          <span data-org-unit>Controller of Examinations</span>
+        </span>
+      </a>
+
+      <nav class="nav" id="primaryNav" aria-label="Sections">
+        <a href="#overview" class="nav__link" data-nav>Overview</a>
+        <a href="#tools" class="nav__link" data-nav>Tools</a>
+        <a href="#workflow" class="nav__link" data-nav>How it works</a>
+        <a href="#about" class="nav__link" data-nav>About</a>
+      </nav>
+
+      <div class="site-header__user">
+        <span class="userchip" title="Signed in">
+          <span class="userchip__dot" aria-hidden="true"></span>
+          <span data-current-user>—</span>
+        </span>
+        <button type="button" class="btn btn--ghost btn--sm" id="logoutBtn">Sign out</button>
+      </div>
+
+      <button type="button" class="menu-btn" id="menuBtn"
+              aria-expanded="false" aria-controls="mobileNav" aria-label="Open menu">
+        <span aria-hidden="true"></span>
+      </button>
+    </div>
+
+    <div class="mobile-nav" id="mobileNav" hidden>
+      <a href="#overview" class="mobile-nav__link" data-nav>Overview</a>
+      <a href="#tools" class="mobile-nav__link" data-nav>Tools</a>
+      <a href="#workflow" class="mobile-nav__link" data-nav>How it works</a>
+      <a href="#about" class="mobile-nav__link" data-nav>About</a>
+      <div class="mobile-nav__foot">
+        <span class="userchip"><span class="userchip__dot" aria-hidden="true"></span><span data-current-user>—</span></span>
+        <button type="button" class="btn btn--ghost btn--sm" data-logout>Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- HERO -->
+    <section class="hero" id="overview">
+      <div class="wrap hero__grid">
+        <div class="hero__copy reveal">
+          <p class="eyebrow"><span>01</span> Overview</p>
+          <h1 class="hero__title">
+            Two verification tools for<br>
+            <em>examination records.</em>
+          </h1>
+          <p class="hero__lede">
+            The suite brings together the checks the examination office runs on
+            gradesheets: comparing issued PDFs against the tabulated result,
+            comparing white-background copies against sealed originals, and
+            re-deriving the numbers printed on each sheet. Each tool runs on its
+            own and produces an Excel report you can download.
+          </p>
+          <div class="hero__actions">
+            <a href="#tools" class="btn btn--primary">Go to the tools</a>
+            <a href="#workflow" class="btn btn--quiet">How it works</a>
+          </div>
+        </div>
+
+        <!-- signature: a specimen comparison record -->
+        <aside class="specimen reveal" aria-label="Illustration of a field-by-field comparison">
+          <div class="specimen__head">
+            <span>Specimen — field comparison</span>
+            <span class="specimen__key" aria-hidden="true">TR · PDF</span>
+          </div>
+          <ul class="specimen__rows">
+            <li class="ok"><span class="specimen__field">Registration No.</span><span class="specimen__val">23BSC0148</span><span class="specimen__mark" aria-hidden="true">✓</span></li>
+            <li class="ok"><span class="specimen__field">Credit structure</span><span class="specimen__val">3-0-0</span><span class="specimen__mark" aria-hidden="true">✓</span></li>
+            <li class="bad"><span class="specimen__field">SGPA</span><span class="specimen__val">7.6 · 7.60</span><span class="specimen__mark" aria-hidden="true">✕</span></li>
+            <li class="ok"><span class="specimen__field">Total credit points</span><span class="specimen__val">218</span><span class="specimen__mark" aria-hidden="true">✓</span></li>
+            <li class="bad"><span class="specimen__field">Mother's name</span><span class="specimen__val">blank in PDF</span><span class="specimen__mark" aria-hidden="true">✕</span></li>
+            <li class="ok"><span class="specimen__field">Course code</span><span class="specimen__val">MTL100 [T]</span><span class="specimen__mark" aria-hidden="true">✓</span></li>
+          </ul>
+          <p class="specimen__foot">
+            Every difference is written to the report with the field, both values
+            and the kind of difference found.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- TOOLS -->
+    <section class="section section--tools" id="tools">
+      <div class="wrap">
+        <header class="section__head reveal">
+          <p class="eyebrow"><span>02</span> Tools</p>
+          <h2 class="section__title">Choose a verification tool</h2>
+          <p class="section__lede">
+            The two tools are separate applications. Opening one does not affect
+            the other, and you can come back here to switch at any time.
+          </p>
+        </header>
+
+        <div class="tools">
+
+          <!-- TOOL 01 -->
+          <article class="tool tool--primary reveal">
+            <div class="tool__index" aria-hidden="true">01</div>
+            <div class="tool__body">
+              <p class="tool__kicker">Gradesheet ↔ tabulated result</p>
+              <h3 class="tool__name">All-in-One Verification</h3>
+              <p class="tool__desc">
+                Loads the TR spreadsheet and a batch of gradesheet PDFs, pairs
+                them on registration number, and reports every field that does
+                not agree — identity block, subject table, credit structure,
+                marks and totals — in one Excel workbook.
+              </p>
+
+              <ul class="tool__list">
+                <li>Reads the TR from a chosen worksheet; TR layout is auto-detected, with a manual override for the three known formats.</li>
+                <li>Handles the transcript identity formats in use, including sheets without an ABC ID row, which are reported as N/A rather than blank.</li>
+                <li>Checks subject rows by course code, falling back to course name, and flags duplicate or mispaired courses.</li>
+                <li>Re-derives maximum marks, total credits, total credit points and the credit structure, then compares them with what the sheet prints.</li>
+                <li>Runs several hundred PDFs in one pass, keeps going in a background tab, and lists any file with no readable text layer.</li>
+              </ul>
+
+              <a class="btn btn--primary tool__cta" data-tool="allInOne" href="#" rel="noopener">
+                Open All-in-One Verification <span aria-hidden="true">→</span>
+              </a>
+            </div>
+          </article>
+
+          <!-- TOOL 02 -->
+          <article class="tool tool--secondary reveal">
+            <div class="tool__index" aria-hidden="true">02</div>
+            <div class="tool__body">
+              <p class="tool__kicker">Four checks in one toolkit</p>
+              <h3 class="tool__name">White vs Original Verification</h3>
+              <p class="tool__desc">
+                A toolkit built around the white-background versus sealed-original
+                comparison, with three related checks that use the same PDFs and
+                TR. Each check produces its own numbered Excel report.
+              </p>
+
+              <ul class="tool__modules">
+                <li>
+                  <span class="tool__moduleName">White vs original</span>
+                  <span class="tool__moduleText">Pairs the two sets on registration number, then compares every identity field, course row, total, summary value and the publication date.</span>
+                </li>
+                <li>
+                  <span class="tool__moduleName">SGPA &amp; percentage</span>
+                  <span class="tool__moduleText">Recomputes percentage and SGPA from each sheet's own rows, along with row credit points, column totals and maximum marks.</span>
+                </li>
+                <li>
+                  <span class="tool__moduleName">Withheld students</span>
+                  <span class="tool__moduleText">Reads the TR and lists students whose grace cell carries a W, exporting every grace cell with its Excel row number.</span>
+                </li>
+                <li>
+                  <span class="tool__moduleName">Failed candidates</span>
+                  <span class="tool__moduleText">Pulls failed candidates from the PDFs, the TR, or both, and cross-checks the two lists to show who was found by only one source.</span>
+                </li>
+              </ul>
+
+              <a class="btn btn--primary tool__cta" data-tool="whiteVsOriginal" href="#" rel="noopener">
+                Open White vs Original <span aria-hidden="true">→</span>
+              </a>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- WORKFLOW -->
+    <section class="section section--workflow" id="workflow">
+      <div class="wrap">
+        <header class="section__head reveal">
+          <p class="eyebrow"><span>03</span> How it works</p>
+          <h2 class="section__title">From sign-in to report</h2>
+        </header>
+
+        <ol class="steps">
+          <li class="step reveal">
+            <span class="step__num">01</span>
+            <h3 class="step__title">Sign in</h3>
+            <p>Use the ID issued to the examination office team. Your session stays open in this browser until you sign out or it expires.</p>
+          </li>
+          <li class="step reveal">
+            <span class="step__num">02</span>
+            <h3 class="step__title">Pick the tool</h3>
+            <p>All-in-One for gradesheets against the TR; White vs Original for copy-to-copy comparison and the SGPA, withheld and failed checks.</p>
+          </li>
+          <li class="step reveal">
+            <span class="step__num">03</span>
+            <h3 class="step__title">Load the files and run</h3>
+            <p>Add the TR workbook and the PDFs inside the tool, choose the format options if auto-detection needs a correction, then run the check.</p>
+          </li>
+          <li class="step reveal">
+            <span class="step__num">04</span>
+            <h3 class="step__title">Download and come back</h3>
+            <p>Save the Excel report, then return to this page whenever you need the other tool. The two applications keep their own state.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ABOUT / NOTICE -->
+    <section class="section section--about" id="about">
+      <div class="wrap about">
+        <div class="about__col reveal">
+          <p class="eyebrow"><span>04</span> About</p>
+          <h2 class="section__title">One door, two independent tools</h2>
+          <p>
+            This portal holds no verification logic of its own. It signs you in,
+            explains what each tool does, and links to the two applications,
+            which are maintained as separate projects and can be updated
+            independently of this page.
+          </p>
+          <p>
+            Both tools are built to run in the browser: files are read by the
+            page you open them in, and the reports are generated on your machine.
+            This portal itself never receives a file. If you need this behaviour
+            confirmed for a compliance record, verify it against the source of
+            each application rather than relying on this summary.
+          </p>
+        </div>
+
+        <aside class="notice reveal">
+          <h3 class="notice__title">Handling of documents</h3>
+          <ul class="notice__list">
+            <li>Sign-in here controls access to the portal page only. It does not encrypt or protect the documents you work with.</li>
+            <li>Downloaded reports are ordinary Excel files. Store them where your office normally keeps examination records.</li>
+            <li>Sign out when you are finished on a shared computer, and avoid leaving reports in a shared downloads folder.</li>
+            <li>Report anything that looks wrong in a result to the examination office before acting on it.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap site-footer__inner">
+      <div class="brandmark brandmark--sm">
+        <img src="assets/logo.png" alt="" class="brandmark__img" data-logo>
+        <span class="brandmark__fallback" data-logo-fallback hidden aria-hidden="true">MSU</span>
+        <span class="brandmark__text">
+          <strong data-org-name>Medhavi Skills University</strong>
+          <span data-org-unit>Controller of Examinations</span>
+        </span>
+      </div>
+      <p class="site-footer__meta">
+        Internal verification suite · <span data-year>2026</span><br>
+        For use by authorised examination office staff.
+      </p>
+    </div>
+  </footer>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
